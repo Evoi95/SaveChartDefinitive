@@ -1,7 +1,12 @@
 package com.example.savechart;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.DownloadManager;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.os.AsyncTask;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
@@ -12,8 +17,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-
-import com.github.mikephil.charting.charts.Chart;
+import android.widget.Toast;
+//chart import
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
@@ -21,20 +26,18 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
 
+public class MainActivity extends AppCompatActivity {
+ // implementeare IF exist delete
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
         FloatingActionButton fab = findViewById(R.id.fab);
 
 
@@ -51,18 +54,24 @@ public class MainActivity extends AppCompatActivity {
         LineData data = new LineData(dataSets);
         mpLineChart.setData(data);
         mpLineChart.invalidate();
+       fab.setOnClickListener(new View.OnClickListener() {
+          @SuppressLint("WrongConstant")
+          @Override
+          public void onClick(View view) {
 
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                saveImage(mpLineChart,"prova2");
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
+              if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                  saveImage(mpLineChart, "prova2");
+                  Snackbar.make(view, "Chart saved in your gallery", Snackbar.LENGTH_LONG)
+                          .setAction("Action", null).show();
+              }
+              else{
+                  if(shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                      Log.i("ERR","NO PERMISION");
+                  }
+                requestPermissions(new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+              }
+          }
         });
-
-
     }
 
     @Override
@@ -86,8 +95,6 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
-
     private ArrayList<Entry> dataVallues1() {
 
         ArrayList<Entry> dataVals = new ArrayList<Entry>();
@@ -99,7 +106,6 @@ public class MainActivity extends AppCompatActivity {
         dataVals.add(new Entry(5, 2));
         return dataVals;
     }
-
     private ArrayList<Entry> dataVallues2() {
 
         ArrayList<Entry> dataVals = new ArrayList<Entry>();
@@ -112,33 +118,29 @@ public class MainActivity extends AppCompatActivity {
         return dataVals;
     }
 
-
-
-
     private void saveImage(LineChart chart, String image_name) {
-        Bitmap finalBitmap;
-        int width =chart.getWidth();
-        int height= chart.getHeight();
-        Bitmap cBitmap =chart.getChartBitmap();
-        finalBitmap =  Bitmap.createScaledBitmap(cBitmap,width, height,true);
-        //String root = Environment.getExternalStorageDirectory().toString();
-        //File myDir = new File(root+"myFolder");
-        //myDir.mkdir()
-        //File path =  getApplicationContext().getFilesDir(); //WORK!!!
 
-        //String path = /*Environment.getExternalStorageDirectory() +*/ "/sdcard/DCIM" ;//+ Environment.DIRECTORY_DCIM + "/";
-        String path = Environment.DIRECTORY_DCIM;
-        String fname = "Image-" + image_name+ ".png";
+        // Permission is not granted
+
+        Bitmap finalBitmap;
+        int width = chart.getWidth();
+        int height = chart.getHeight();
+        Bitmap cBitmap = chart.getChartBitmap();
+        finalBitmap = Bitmap.createScaledBitmap(cBitmap, width, height, true);
+        //File path =  getApplicationContext().getFilesDir();
+        // For save file in internal directpory
+        String path = Environment.getExternalStorageDirectory()+"/"+ Environment.DIRECTORY_DCIM+"/";
+        String fname = "Image-" + image_name + ".png";
         File file = new File(path, fname);
         Log.i("LOAD", path + fname);
         try {
             FileOutputStream out = new FileOutputStream(file);
             finalBitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
+            sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
             out.flush();
             out.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
     }
 }
