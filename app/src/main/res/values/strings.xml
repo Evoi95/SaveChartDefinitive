@@ -1,4 +1,9 @@
 <resources>
-    <string name="app_name">SaveChart</string>
+    <string name="app_name">Line Chart</string>
     <string name="action_settings">Settings</string>
+    <string name="title_activity_bar_chart">Bar Chart</string>
+    <string name="title_activity_pie_chart_">PieChart_Activity</string>
+    <string name="title_activity_line_chart_">LineChart_Activity</string>
+    <string name="create_bar_chart">Create Bar Chart</string>
+    <string name="makebarchart">makeBarChart</string>
 </resources>
